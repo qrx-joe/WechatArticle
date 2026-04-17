@@ -1,0 +1,15 @@
+[project]
+name = "wechat-article"
+version = "0.1.0"
+description = "微信公众号文章生成工具 - 文字+配图"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+wechat = "src.cli:main"
+
+[tool.uv]
+package = true

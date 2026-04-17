@@ -1,0 +1,28 @@
+# WechatArticle 项目配置
+
+# AI 模型配置
+ai:
+  # 支持: claude, openai, deepseek
+  provider: claude
+  model: claude-sonnet-4-6
+  # API Key 可通过环境变量覆盖: CLAUDE_API_KEY, OPENAI_API_KEY, DEEPSEEK_API_KEY
+
+# 文章风格配置
+style:
+  # 文章 tone: professional, casual, storytelling, academic
+  tone: storytelling
+  # 目标字数范围
+  word_count:
+    min: 1500
+    max: 3000
+  # 段落风格: short(短段落适合手机), medium, long
+  paragraph_style: short
+
+# 配图配置
+illustration:
+  # 是否自动生成配图
+  enabled: true
+  # 配图风格: 传递给 baoyu-article-illustrator
+  style: "扁平插画风格，色彩明亮，适合公众号文章配图"
+  # 配图数量上限
+  max_images: 5
