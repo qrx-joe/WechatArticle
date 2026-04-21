@@ -1,0 +1,40 @@
+{
+  "jobs": 2,
+  "tasks": [
+    {
+      "id": "cover",
+      "promptFiles": ["prompts/01-cover.md"],
+      "image": "01-cover-lumiq.png",
+      "ar": "3:4",
+      "size": "1080x1440"
+    },
+    {
+      "id": "story",
+      "promptFiles": ["prompts/02-story.md"],
+      "image": "02-story-lumiq.png",
+      "ar": "3:4",
+      "size": "1080x1440"
+    },
+    {
+      "id": "turning",
+      "promptFiles": ["prompts/03-turning.md"],
+      "image": "03-turning-lumiq.png",
+      "ar": "3:4",
+      "size": "1080x1440"
+    },
+    {
+      "id": "insight",
+      "promptFiles": ["prompts/04-insight.md"],
+      "image": "04-insight-lumiq.png",
+      "ar": "3:4",
+      "size": "1080x1440"
+    },
+    {
+      "id": "ending",
+      "promptFiles": ["prompts/05-ending.md"],
+      "image": "05-ending-lumiq.png",
+      "ar": "3:4",
+      "size": "1080x1440"
+    }
+  ]
+}
