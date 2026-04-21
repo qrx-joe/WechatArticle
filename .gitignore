@@ -11,3 +11,9 @@ wheels/
 
 # AI skill configs
 .baoyu-skills/
+
+# Generated images (keep batch configs, ignore binary images)
+content/**/images/*.png
+content/**/images/*.jpg
+content/**/images/*.jpeg
+content/**/images/*.webp
