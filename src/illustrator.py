@@ -1,6 +1,4 @@
-import json
 import re
-from pathlib import Path
 
 
 class IllustrationPlanner:
@@ -15,11 +13,13 @@ class IllustrationPlanner:
         """从文章中提取所有配图占位符."""
         slots = []
         for match in self.PLACEHOLDER_PATTERN.finditer(article):
-            slots.append({
-                "position": match.start(),
-                "context": match.group(1).strip(),
-                "original": match.group(0),
-            })
+            slots.append(
+                {
+                    "position": match.start(),
+                    "context": match.group(1).strip(),
+                    "original": match.group(0),
+                }
+            )
         return slots
 
     def plan_illustrations(self, article: str, title: str) -> list[dict]:
@@ -47,23 +47,27 @@ class IllustrationPlanner:
         slots = []
 
         # 封面图
-        slots.append({
-            "position": 0,
-            "context": f"文章封面：{title}",
-            "type": "cover",
-        })
+        slots.append(
+            {
+                "position": 0,
+                "context": f"文章封面：{title}",
+                "type": "cover",
+            }
+        )
 
         # 按段落检测关键概念（简化版）
         paragraphs = article.split("\n\n")
-        for i, para in enumerate(paragraphs):
+        for _i, para in enumerate(paragraphs):
             if len(para) > 200 and "##" in para:
                 # 章节开头附近可能需要配图
                 heading = para.split("\n")[0] if "\n" in para else para[:50]
-                slots.append({
-                    "position": article.find(para),
-                    "context": f"章节配图：{heading}",
-                    "type": "inline",
-                })
+                slots.append(
+                    {
+                        "position": article.find(para),
+                        "context": f"章节配图：{heading}",
+                        "type": "inline",
+                    }
+                )
 
         return slots
 
@@ -73,14 +77,16 @@ class IllustrationPlanner:
         for i, slot in enumerate(slots):
             context = slot["context"]
             prompt = f"{style}，{context}" if style else context
-            results.append({
-                "index": i,
-                "filename": f"image_{i:02d}.png",
-                "position": slot.get("position", 0),
-                "context": context,
-                "prompt": prompt,
-                "type": slot.get("type", "inline"),
-            })
+            results.append(
+                {
+                    "index": i,
+                    "filename": f"image_{i:02d}.png",
+                    "position": slot.get("position", 0),
+                    "context": context,
+                    "prompt": prompt,
+                    "type": slot.get("type", "inline"),
+                }
+            )
         return results
 
     def insert_image_placeholders(self, article: str, image_plan: list[dict]) -> str:

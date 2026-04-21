@@ -12,6 +12,9 @@ wheels/
 # AI skill configs
 .baoyu-skills/
 
+# Claude workspace
+.claude/
+
 # Generated images (keep batch configs, ignore binary images)
 content/**/images/*.png
 content/**/images/*.jpg

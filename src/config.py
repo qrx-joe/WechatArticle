@@ -9,7 +9,7 @@ class Config:
         self.path = Path(path)
         self._data = {}
         if self.path.exists():
-            with open(self.path, "r", encoding="utf-8") as f:
+            with open(self.path, encoding="utf-8") as f:
                 self._data = yaml.safe_load(f) or {}
 
     def get(self, key: str, default=None):

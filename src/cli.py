@@ -85,9 +85,7 @@ def launch_chrome_if_needed(cdp_port: int = 9222) -> bool:
             )
             for _ in range(30):
                 try:
-                    urllib.request.urlopen(
-                        f"http://127.0.0.1:{cdp_port}/json/version", timeout=1
-                    )
+                    urllib.request.urlopen(f"http://127.0.0.1:{cdp_port}/json/version", timeout=1)
                     return True
                 except Exception:
                     time.sleep(0.5)
@@ -104,7 +102,7 @@ def cmd_post(args):
     if not article_path.exists():
         article_path = article_dir / "article_raw.md"
     if not article_path.exists():
-        print(f"错误: 找不到文章文件 (article.md 或 article_raw.md)")
+        print("错误: 找不到文章文件 (article.md 或 article_raw.md)")
         sys.exit(1)
 
     bun = find_bun()
@@ -125,7 +123,7 @@ def cmd_post(args):
         print("警告: 无法自动启动 Chrome，请手动启动:")
         print(
             f'  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" '
-            f'--remote-debugging-port={cdp_port} '
+            f"--remote-debugging-port={cdp_port} "
             f'--user-data-dir="%APPDATA%\\baoyu-skills\\chrome-profile" '
             f"--no-first-run --no-default-browser-check"
         )
@@ -133,10 +131,15 @@ def cmd_post(args):
         sys.exit(1)
 
     cmd = [
-        str(bun), "run", str(script),
-        "--markdown", str(article_path),
-        "--theme", args.theme or "default",
-        "--cdp-port", str(cdp_port),
+        str(bun),
+        "run",
+        str(script),
+        "--markdown",
+        str(article_path),
+        "--theme",
+        args.theme or "default",
+        "--cdp-port",
+        str(cdp_port),
     ]
     if args.no_cite:
         cmd.append("--no-cite")
@@ -162,11 +165,14 @@ def cmd_new(args):
     outline_prompt = generator.generate_outline(topic)
 
     article_dir = create_article_dir(topic)
-    save_article_state(article_dir, {
-        "topic": topic,
-        "status": "outlined",
-        "dir": str(article_dir),
-    })
+    save_article_state(
+        article_dir,
+        {
+            "topic": topic,
+            "status": "outlined",
+            "dir": str(article_dir),
+        },
+    )
 
     # 保存大纲 prompt，供用户自行调用 AI
     prompt_path = article_dir / "outline_prompt.txt"
@@ -215,7 +221,7 @@ def cmd_illustrate(args):
         article_path = article_dir / "article.md"
 
     if not article_path.exists():
-        print(f"错误: 找不到文章文件")
+        print("错误: 找不到文章文件")
         sys.exit(1)
 
     article = article_path.read_text(encoding="utf-8")
@@ -243,7 +249,7 @@ def cmd_illustrate(args):
     print(f"共 {len(image_plan)} 张配图:")
     for img in image_plan:
         print(f"  [{img['index'] + 1}] {img['filename']}: {img['context']}")
-    print(f"\n请使用 baoyu-article-illustrator 或 baoyu-imagine 生成配图")
+    print("\n请使用 baoyu-article-illustrator 或 baoyu-imagine 生成配图")
     print(f"图片保存到: {article_dir / 'images'}")
 
 
@@ -296,7 +302,9 @@ def main():
     # post: 发布到草稿箱
     p_post = sub.add_parser("post", help="发布文章到微信公众号草稿箱")
     p_post.add_argument("--dir", "-d", required=True, help="文章目录路径")
-    p_post.add_argument("--theme", "-t", default="default", help="文章主题 (default, grace, simple, modern)")
+    p_post.add_argument(
+        "--theme", "-t", default="default", help="文章主题 (default, grace, simple, modern)"
+    )
     p_post.add_argument("--cdp-port", type=int, default=9222, help="Chrome debug port")
     p_post.add_argument("--no-cite", action="store_true", help="禁用底部引用")
 

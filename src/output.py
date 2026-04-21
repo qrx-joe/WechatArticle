@@ -53,18 +53,18 @@ class ArticleOutput:
 
     def print_summary(self, title: str, word_count: int, image_count: int):
         """打印文章生成摘要."""
-        print(f"\n{'='*50}")
-        print(f"  文章生成完成")
-        print(f"{'='*50}")
+        print(f"\n{'=' * 50}")
+        print("  文章生成完成")
+        print(f"{'=' * 50}")
         print(f"  标题: {title}")
         print(f"  字数: {word_count}")
         print(f"  配图: {image_count} 张")
         print(f"  目录: {self.article_dir}")
-        print(f"{'='*50}")
-        print(f"\n  文件列表:")
+        print(f"{'=' * 50}")
+        print("\n  文件列表:")
         for f in sorted(self.article_dir.rglob("*")):
             if f.is_file():
                 rel = f.relative_to(self.article_dir)
                 print(f"    - {rel}")
-        print(f"\n  下一步: 按 PUBLISH_GUIDE.md 指引发布")
-        print(f"{'='*50}\n")
+        print("\n  下一步: 按 PUBLISH_GUIDE.md 指引发布")
+        print(f"{'=' * 50}\n")
