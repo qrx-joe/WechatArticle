@@ -67,3 +67,15 @@ class Config:
     @property
     def max_images(self) -> int:
         return self.get("illustration.max_images", 5)
+
+    @property
+    def xhs_card_count(self) -> int:
+        return self.get("xhs.card_count", 5)
+
+    @property
+    def xhs_illustration_style(self) -> str:
+        return self.get("xhs.illustration_style", "扁平插画风格，温暖治愈，适合小红书笔记")
+
+    @property
+    def xhs_default_tags(self) -> list[str]:
+        return self.get("xhs.default_tags", ["AI编程", "ClaudeCode", "自我成长", "效率工具"])

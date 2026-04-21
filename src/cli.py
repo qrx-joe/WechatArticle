@@ -14,6 +14,7 @@ from .config import Config
 from .generator import ArticleGenerator, create_article_dir, load_article_state, save_article_state
 from .illustrator import IllustrationPlanner
 from .output import ArticleOutput
+from .xhs_generator import XHSGenerator
 
 
 def find_bun() -> Path | None:
@@ -253,6 +254,49 @@ def cmd_illustrate(args):
     print(f"图片保存到: {article_dir / 'images'}")
 
 
+def cmd_xhs(args):
+    """生成小红书版本文案、配图 prompts 和发布指南."""
+    article_dir = Path(args.dir)
+
+    article_path = article_dir / "article.md"
+    if not article_path.exists():
+        article_path = article_dir / "article_raw.md"
+    if not article_path.exists():
+        print("错误: 找不到文章文件 (article.md 或 article_raw.md)")
+        sys.exit(1)
+
+    article = article_path.read_text(encoding="utf-8")
+    state = load_article_state(article_dir)
+    title = state.get("topic", "未命名文章")
+
+    print(f"\n正在生成小红书版本: {title}")
+    print("=" * 50)
+
+    generator = XHSGenerator(article_dir)
+    result = generator.generate(article, title)
+
+    print(f"✓ 小红书文案: {result['xhs_version']}")
+    print(f"✓ 配图 Prompts: {result['prompts']}")
+    print(f"✓ 发布指南: {result['guide']}")
+    print(f"✓ 单独 Prompt 文件: {article_dir / 'images' / 'xhs' / 'prompts'}")
+
+    # 更新状态
+    platforms = state.get("platforms", {})
+    xhs_state = platforms.get("xhs", {})
+    xhs_state["status"] = "ready"
+    platforms["xhs"] = xhs_state
+    save_article_state(article_dir, {**state, "platforms": platforms})
+
+    print("\n" + "=" * 50)
+    print("小红书版本生成完成！")
+    print("\n下一步:")
+    print("  1. 阅读 xhs-version.md，确认文案")
+    print("  2. 使用 XHS_PUBLISH_GUIDE.md 中的 Prompt 生成配图")
+    print("  3. 在即梦/通义万相/豆包等工具中生成 5 张 3:4 竖版图")
+    print("  4. 用醒图/黄油相机添加文字，发布到小红书")
+    print("=" * 50 + "\n")
+
+
 def cmd_jike(args):
     """查看即刻版本内容或发布指南."""
     article_dir = Path(args.dir)
@@ -415,6 +459,10 @@ def main():
     p_finish = sub.add_parser("finish", help="生成发布指引")
     p_finish.add_argument("--dir", "-d", required=True, help="文章目录路径")
 
+    # xhs: 小红书版本
+    p_xhs = sub.add_parser("xhs", help="生成小红书版本文案、配图 prompts 和发布指南")
+    p_xhs.add_argument("--dir", "-d", required=True, help="文章目录路径")
+
     # jike: 即刻版本
     p_jike = sub.add_parser("jike", help="查看即刻版本内容或发布指南")
     p_jike.add_argument("--dir", "-d", required=True, help="文章目录路径")
@@ -440,6 +488,7 @@ def main():
         "write": cmd_write,
         "illustrate": cmd_illustrate,
         "finish": cmd_finish,
+        "xhs": cmd_xhs,
         "jike": cmd_jike,
         "post": cmd_post,
     }

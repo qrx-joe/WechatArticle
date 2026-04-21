@@ -26,3 +26,20 @@ illustration:
   style: "扁平插画风格，色彩明亮，适合公众号文章配图"
   # 配图数量上限
   max_images: 5
+
+# 小红书配置
+xhs:
+  # 卡片数量 (默认5张: 封面+3内容+结尾)
+  card_count: 5
+  # 配图风格
+  illustration_style: "扁平插画风格，温暖治愈，适合小红书笔记"
+  # 默认标签
+  default_tags:
+    - "AI编程"
+    - "ClaudeCode"
+    - "零基础学编程"
+    - "自我成长"
+    - "效率工具"
+    - "女性成长"
+    - "编程入门"
+    - "AI工具"

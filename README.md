@@ -48,7 +48,21 @@ uv run wechat finish --dir content/YYYY-MM-DD/slug
 
 生成 `PUBLISH_GUIDE.md` 发布指引，汇总文章信息。
 
-### 5. 发布到公众号
+### 6. 生成小红书版本
+
+```bash
+uv run wechat xhs --dir content/YYYY-MM-DD/slug
+```
+
+自动生成小红书5卡片系列笔记：
+- `xhs-version.md` — 5张卡片的文案
+- `xhs-prompts.md` — 5张配图的中英文 Prompt
+- `XHS_PUBLISH_GUIDE.md` — 发布指南（含工具推荐、操作步骤、禁忌清单）
+- `images/xhs/prompts/*.md` — 每张图的单独 Prompt 文件
+
+生成配图后，用醒图/黄油相机添加文字即可发布。
+
+### 7. 发布到公众号
 
 ```bash
 uv run wechat post --dir content/YYYY-MM-DD/slug
@@ -82,10 +96,15 @@ content/
       article.md              # 插入图片占位符后的最终文章
       article_prompt.txt      # 生成正文的 prompt
       jike-version.md         # 即刻版本（如有）
+      xhs-version.md          # 小红书版本（5卡片文案）
+      xhs-prompts.md          # 小红书配图 Prompts
       image_plan.json         # 配图方案
       meta.json               # 文章元数据
-      prompts/                # 配图 prompt 文件
+      prompts/                # 公众号配图 prompt 文件
       images/                 # 配图文件
+        xhs/                  # 小红书配图
+          prompts/            # 小红书单独 prompt 文件
       PUBLISH_GUIDE.md        # 公众号发布指引
       JIKE_PUBLISH_GUIDE.md   # 即刻发布指引
+      XHS_PUBLISH_GUIDE.md    # 小红书发布指引
 ```
