@@ -2,13 +2,151 @@
 
 import argparse
 import json
+import os
+import shutil
+import subprocess
 import sys
+import time
+import urllib.request
 from pathlib import Path
 
 from .config import Config
 from .generator import ArticleGenerator, create_article_dir, load_article_state, save_article_state
 from .illustrator import IllustrationPlanner
 from .output import ArticleOutput
+
+
+def find_bun() -> Path | None:
+    """查找 bun 可执行文件."""
+    bun = shutil.which("bun")
+    if bun:
+        return Path(bun)
+    windows_path = Path.home() / ".bun" / "bin" / "bun.exe"
+    if windows_path.exists():
+        return windows_path
+    unix_path = Path.home() / ".bun" / "bin" / "bun"
+    if unix_path.exists():
+        return unix_path
+    return None
+
+
+def find_wechat_script() -> Path | None:
+    """查找 baoyu-post-to-wechat 的 wechat-article.ts 脚本."""
+    env_path = os.environ.get("BAOYU_WECHAT_SCRIPT")
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+    default = (
+        Path.home()
+        / ".claude"
+        / "skills"
+        / "baoyu-post-to-wechat"
+        / "scripts"
+        / "wechat-article.ts"
+    )
+    if default.exists():
+        return default
+    return None
+
+
+def launch_chrome_if_needed(cdp_port: int = 9222) -> bool:
+    """如果 Chrome debug port 不可用，尝试启动 Chrome."""
+    try:
+        urllib.request.urlopen(f"http://127.0.0.1:{cdp_port}/json/version", timeout=2)
+        return True
+    except Exception:
+        pass
+
+    candidates = [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    ]
+    for c in [shutil.which("google-chrome-stable"), shutil.which("chromium")]:
+        if c:
+            candidates.insert(0, c)
+
+    profile_dir = Path.home() / "AppData" / "Roaming" / "baoyu-skills" / "chrome-profile"
+
+    for chrome in candidates:
+        if not chrome or not Path(chrome).exists():
+            continue
+        try:
+            subprocess.Popen(
+                [
+                    str(chrome),
+                    f"--remote-debugging-port={cdp_port}",
+                    f"--user-data-dir={profile_dir}",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            for _ in range(30):
+                try:
+                    urllib.request.urlopen(
+                        f"http://127.0.0.1:{cdp_port}/json/version", timeout=1
+                    )
+                    return True
+                except Exception:
+                    time.sleep(0.5)
+        except Exception:
+            continue
+    return False
+
+
+def cmd_post(args):
+    """发布文章到微信公众号草稿箱."""
+    article_dir = Path(args.dir)
+
+    article_path = article_dir / "article.md"
+    if not article_path.exists():
+        article_path = article_dir / "article_raw.md"
+    if not article_path.exists():
+        print(f"错误: 找不到文章文件 (article.md 或 article_raw.md)")
+        sys.exit(1)
+
+    bun = find_bun()
+    if not bun:
+        print("错误: 找不到 bun")
+        print('安装命令: powershell -c "irm https://bun.sh/install.ps1 | iex"')
+        sys.exit(1)
+
+    script = find_wechat_script()
+    if not script:
+        print("错误: 找不到 baoyu-post-to-wechat 技能脚本")
+        print("请确保已安装该技能，或设置环境变量 BAOYU_WECHAT_SCRIPT")
+        sys.exit(1)
+
+    cdp_port = args.cdp_port or 9222
+    chrome_ready = launch_chrome_if_needed(cdp_port)
+    if not chrome_ready:
+        print("警告: 无法自动启动 Chrome，请手动启动:")
+        print(
+            f'  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" '
+            f'--remote-debugging-port={cdp_port} '
+            f'--user-data-dir="%APPDATA%\\baoyu-skills\\chrome-profile" '
+            f"--no-first-run --no-default-browser-check"
+        )
+        print("然后重新运行此命令。")
+        sys.exit(1)
+
+    cmd = [
+        str(bun), "run", str(script),
+        "--markdown", str(article_path),
+        "--theme", args.theme or "default",
+        "--cdp-port", str(cdp_port),
+    ]
+    if args.no_cite:
+        cmd.append("--no-cite")
+
+    print(f"\n发布文章: {article_path}")
+    print(f"Theme: {args.theme or 'default'}")
+    print("如果未登录，请在浏览器中扫码登录微信公众平台...\n")
+
+    result = subprocess.run(cmd)
+    sys.exit(result.returncode)
 
 
 def cmd_new(args):
@@ -155,6 +293,13 @@ def main():
     p_finish = sub.add_parser("finish", help="生成发布指引")
     p_finish.add_argument("--dir", "-d", required=True, help="文章目录路径")
 
+    # post: 发布到草稿箱
+    p_post = sub.add_parser("post", help="发布文章到微信公众号草稿箱")
+    p_post.add_argument("--dir", "-d", required=True, help="文章目录路径")
+    p_post.add_argument("--theme", "-t", default="default", help="文章主题 (default, grace, simple, modern)")
+    p_post.add_argument("--cdp-port", type=int, default=9222, help="Chrome debug port")
+    p_post.add_argument("--no-cite", action="store_true", help="禁用底部引用")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
@@ -165,6 +310,7 @@ def main():
         "write": cmd_write,
         "illustrate": cmd_illustrate,
         "finish": cmd_finish,
+        "post": cmd_post,
     }
     cmds[args.command](args)
 
