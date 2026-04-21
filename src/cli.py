@@ -253,6 +253,94 @@ def cmd_illustrate(args):
     print(f"图片保存到: {article_dir / 'images'}")
 
 
+def cmd_jike(args):
+    """查看即刻版本内容或发布指南."""
+    article_dir = Path(args.dir)
+
+    if args.guide:
+        guide_path = article_dir / "JIKE_PUBLISH_GUIDE.md"
+        if not guide_path.exists():
+            print("错误: 找不到 JIKE_PUBLISH_GUIDE.md")
+            print("请先完成文章生成（wechat finish），然后手动创建发布指南。")
+            sys.exit(1)
+        print(guide_path.read_text(encoding="utf-8"))
+        return
+
+    jike_path = article_dir / "jike-version.md"
+    if not jike_path.exists():
+        prompt_path = article_dir / "jike_prompt.txt"
+        if prompt_path.exists():
+            print("即刻版本内容尚未生成。")
+            print(f"请使用以下文件中的 prompt 调用 AI 生成即刻版本：{prompt_path}")
+            print("然后将 AI 的回复保存为 jike-version.md")
+        else:
+            print("错误: 找不到 jike-version.md 或 jike_prompt.txt")
+            print("请先运行: wechat finish --dir <文章目录>")
+        sys.exit(1)
+
+    content = jike_path.read_text(encoding="utf-8")
+
+    if args.copy:
+        # 尝试提取主帖文案并复制到剪贴板
+        main_post = _extract_jike_main_post(content)
+        if main_post:
+            if _copy_to_clipboard(main_post):
+                print("主帖文案已复制到剪贴板！")
+                print(f"\n{main_post[:100]}...")
+            else:
+                print("无法自动复制到剪贴板，请手动复制以下内容：")
+                print(f"\n{main_post}")
+        else:
+            print("无法从 jike-version.md 中提取主帖文案，完整内容如下：")
+            print(f"\n{content}")
+        return
+
+    print(content)
+
+
+def _extract_jike_main_post(content: str) -> str | None:
+    """从即刻版本内容中提取主帖文案."""
+    # 尝试匹配 ## 主帖 或 ### 主帖（图文） 下的代码块
+    import re
+
+    # 匹配 "## 主帖" 或 "### 主帖" 后的代码块
+    patterns = [
+        r"#{1,3}\s*主帖.*?```\n(.*?)\n```",
+        r"#{1,3}\s*主帖.*?\n\n```\n(.*?)\n```",
+        r"#{1,3}\s*文案[:：]?\n\n```\n(.*?)\n```",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, content, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+
+    # 如果没有代码块，尝试匹配主帖标题后的内容直到下一个标题
+    match = re.search(r"#{1,3}\s*主帖.*?\n(.*?)(?=\n#{1,3}|\Z)", content, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+
+    return None
+
+
+def _copy_to_clipboard(text: str) -> bool:
+    """将文本复制到剪贴板（跨平台）."""
+    import platform
+
+    system = platform.system()
+    try:
+        if system == "Windows":
+            subprocess.run(["clip"], input=text.encode("utf-16-le"), check=True)
+        elif system == "Darwin":  # macOS
+            subprocess.run(["pbcopy"], input=text.encode("utf-8"), check=True)
+        else:  # Linux
+            subprocess.run(
+                ["xclip", "-selection", "clipboard"], input=text.encode("utf-8"), check=True
+            )
+        return True
+    except Exception:
+        return False
+
+
 def cmd_finish(args):
     """完成文章，生成发布指引."""
     article_dir = Path(args.dir)
@@ -274,9 +362,37 @@ def cmd_finish(args):
 
     output = ArticleOutput(article_dir)
     output.generate_copy_guide(image_plan)
-    save_article_state(article_dir, {**state, "status": "ready", "word_count": word_count})
+
+    # 生成即刻版本 prompt
+    jike_prompt = output.generate_jike_prompt()
+    jike_prompt_path = article_dir / "jike_prompt.txt"
+    # 在 prompt 前添加文章内容上下文
+    jike_prompt_full = f"""# 即刻版本改写 Prompt
+
+## 原文内容
+
+{article}
+
+---
+
+{jike_prompt}
+"""
+    jike_prompt_path.write_text(jike_prompt_full, encoding="utf-8")
+
+    # 更新状态
+    platforms = state.get("platforms", {})
+    jike_state = platforms.get("jike", {})
+    jike_state["status"] = "prompt_ready"
+    platforms["jike"] = jike_state
+    save_article_state(
+        article_dir,
+        {**state, "status": "ready", "word_count": word_count, "platforms": platforms},
+    )
 
     output.print_summary(state.get("topic", ""), word_count, len(image_plan))
+    print(f"\n  即刻版本 prompt 已保存到: {jike_prompt_path}")
+    print("  请将此 prompt 发送给 AI 获取即刻短版本，保存为 jike-version.md")
+    print(f"{'=' * 50}\n")
 
 
 def main():
@@ -299,6 +415,12 @@ def main():
     p_finish = sub.add_parser("finish", help="生成发布指引")
     p_finish.add_argument("--dir", "-d", required=True, help="文章目录路径")
 
+    # jike: 即刻版本
+    p_jike = sub.add_parser("jike", help="查看即刻版本内容或发布指南")
+    p_jike.add_argument("--dir", "-d", required=True, help="文章目录路径")
+    p_jike.add_argument("--guide", "-g", action="store_true", help="显示即刻发布指南")
+    p_jike.add_argument("--copy", "-c", action="store_true", help="复制主帖文案到剪贴板")
+
     # post: 发布到草稿箱
     p_post = sub.add_parser("post", help="发布文章到微信公众号草稿箱")
     p_post.add_argument("--dir", "-d", required=True, help="文章目录路径")
@@ -318,6 +440,7 @@ def main():
         "write": cmd_write,
         "illustrate": cmd_illustrate,
         "finish": cmd_finish,
+        "jike": cmd_jike,
         "post": cmd_post,
     }
     cmds[args.command](args)
