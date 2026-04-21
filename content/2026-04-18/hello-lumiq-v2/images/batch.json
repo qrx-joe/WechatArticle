@@ -1,0 +1,50 @@
+{
+  "jobs": 3,
+  "tasks": [
+    {
+      "id": "cover",
+      "promptFiles": ["../prompts/01-cover.md"],
+      "image": "01-cover.png",
+      "provider": "dashscope",
+      "model": "qwen-image-2.0-pro",
+      "ar": "2.35:1",
+      "quality": "2k"
+    },
+    {
+      "id": "dusty-laptop",
+      "promptFiles": ["../prompts/02-dusty-laptop.md"],
+      "image": "02-dusty-laptop.png",
+      "provider": "dashscope",
+      "model": "qwen-image-2.0-pro",
+      "ar": "16:9",
+      "quality": "2k"
+    },
+    {
+      "id": "ai-helping",
+      "promptFiles": ["../prompts/03-ai-helping.md"],
+      "image": "03-ai-helping.png",
+      "provider": "dashscope",
+      "model": "qwen-image-2.0-pro",
+      "ar": "16:9",
+      "quality": "2k"
+    },
+    {
+      "id": "mindset-shift",
+      "promptFiles": ["../prompts/04-mindset-shift.md"],
+      "image": "04-mindset-shift.png",
+      "provider": "dashscope",
+      "model": "qwen-image-2.0-pro",
+      "ar": "16:9",
+      "quality": "2k"
+    },
+    {
+      "id": "light-door",
+      "promptFiles": ["../prompts/05-light-door.md"],
+      "image": "05-light-door.png",
+      "provider": "dashscope",
+      "model": "qwen-image-2.0-pro",
+      "ar": "16:9",
+      "quality": "2k"
+    }
+  ]
+}

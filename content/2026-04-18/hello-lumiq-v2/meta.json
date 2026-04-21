@@ -1,0 +1,19 @@
+{
+  "topic": "我的第一个AI写代码的项目，睡了八个月才醒来",
+  "status": "published",
+  "platforms": {
+    "wechat": {
+      "published": true,
+      "date": "2026-04-18"
+    },
+    "jike": {
+      "published": true,
+      "date": "2026-04-18"
+    }
+  },
+  "illustration": {
+    "prompts_ready": true,
+    "images_generated": false
+  },
+  "dir": "content/2026-04-18/hello-lumiq-v2"
+}
