@@ -1,0 +1,32 @@
+{
+  "jobs": 3,
+  "tasks": [
+    {
+      "id": "01-lq-monogram",
+      "promptFiles": ["prompts/01-lq-monogram.md"],
+      "image": "01-lq-monogram.png",
+      "provider": "dashscope",
+      "model": "qwen-image-2.0-pro",
+      "ar": "1:1",
+      "quality": "2k"
+    },
+    {
+      "id": "02-prism-light",
+      "promptFiles": ["prompts/02-prism-light.md"],
+      "image": "02-prism-light.png",
+      "provider": "dashscope",
+      "model": "qwen-image-2.0-pro",
+      "ar": "1:1",
+      "quality": "2k"
+    },
+    {
+      "id": "03-spark-icon",
+      "promptFiles": ["prompts/03-spark-icon.md"],
+      "image": "03-spark-icon.png",
+      "provider": "dashscope",
+      "model": "qwen-image-2.0-pro",
+      "ar": "1:1",
+      "quality": "2k"
+    }
+  ]
+}
