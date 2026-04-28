@@ -1,5 +1,15 @@
 {
   "topic": "同一个项目，我做了两遍",
-  "status": "draft",
-  "dir": "content/2026-04-17/ai-code-duplication"
+  "status": "ready",
+  "dir": "content/2026-04-17/ai-code-duplication",
+  "word_count": 3727,
+  "platforms": {
+    "jike": {
+      "status": "prompt_ready"
+    },
+    "xhs": {
+      "status": "ready"
+    }
+  },
+  "summary": "分别用 Codex 和 Claude Code 做了同一个项目，三个月后发现功能重叠 90%。最大的教训不是哪个 AI 更强，而是你的完美主义才是最大的浪费。迭代比重写更勇敢，够好比完美更需要智慧。"
 }

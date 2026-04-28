@@ -142,6 +142,14 @@ def cmd_post(args):
         "--cdp-port",
         str(cdp_port),
     ]
+
+    # 从 meta.json 读取摘要
+    meta_path = article_dir / "meta.json"
+    if meta_path.exists():
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        if meta.get("summary"):
+            cmd.extend(["--summary", meta["summary"]])
+
     if args.no_cite:
         cmd.append("--no-cite")
 
@@ -275,10 +283,10 @@ def cmd_xhs(args):
     generator = XHSGenerator(article_dir)
     result = generator.generate(article, title)
 
-    print(f"✓ 小红书文案: {result['xhs_version']}")
-    print(f"✓ 配图 Prompts: {result['prompts']}")
-    print(f"✓ 发布指南: {result['guide']}")
-    print(f"✓ 单独 Prompt 文件: {article_dir / 'images' / 'xhs' / 'prompts'}")
+    print(f"[OK] 小红书文案: {result['xhs_version']}")
+    print(f"[OK] 配图 Prompts: {result['prompts']}")
+    print(f"[OK] 发布指南: {result['guide']}")
+    print(f"[OK] 单独 Prompt 文件: {article_dir / 'images' / 'xhs' / 'prompts'}")
 
     # 更新状态
     platforms = state.get("platforms", {})
@@ -385,6 +393,34 @@ def _copy_to_clipboard(text: str) -> bool:
         return False
 
 
+def cmd_summary(args):
+    """查看或设置文章摘要."""
+    article_dir = Path(args.dir)
+
+    if args.set_summary:
+        summary_text = args.set_summary
+        state = load_article_state(article_dir)
+        state["summary"] = summary_text
+        save_article_state(article_dir, state)
+        print("摘要已保存到 meta.json")
+        print(f"  {summary_text}")
+        return
+
+    # 显示当前摘要
+    state = load_article_state(article_dir)
+    current = state.get("summary")
+    if current:
+        print(f"当前摘要: {current}")
+    else:
+        print("未设置摘要。")
+        prompt_path = article_dir / "summary_prompt.txt"
+        if prompt_path.exists():
+            print(f"请先使用以下文件中的 prompt 生成摘要: {prompt_path}")
+        else:
+            print("请先运行: wechat finish --dir <文章目录>")
+        print('然后运行: wechat summary --dir <目录> --set "<摘要内容>"')
+
+
 def cmd_finish(args):
     """完成文章，生成发布指引."""
     article_dir = Path(args.dir)
@@ -407,10 +443,24 @@ def cmd_finish(args):
     output = ArticleOutput(article_dir)
     output.generate_copy_guide(image_plan)
 
+    # 生成摘要 prompt
+    summary_prompt = output.generate_summary_prompt()
+    summary_prompt_path = article_dir / "summary_prompt.txt"
+    summary_prompt_full = f"""# 摘要生成 Prompt
+
+## 原文内容
+
+{article}
+
+---
+
+{summary_prompt}
+"""
+    summary_prompt_path.write_text(summary_prompt_full, encoding="utf-8")
+
     # 生成即刻版本 prompt
     jike_prompt = output.generate_jike_prompt()
     jike_prompt_path = article_dir / "jike_prompt.txt"
-    # 在 prompt 前添加文章内容上下文
     jike_prompt_full = f"""# 即刻版本改写 Prompt
 
 ## 原文内容
@@ -434,6 +484,9 @@ def cmd_finish(args):
     )
 
     output.print_summary(state.get("topic", ""), word_count, len(image_plan))
+    print(f"\n  摘要生成 prompt 已保存到: {summary_prompt_path}")
+    print("  请将此 prompt 发送给 AI 获取摘要，然后运行:")
+    print(f'    wechat summary --dir {article_dir} --set "<摘要内容>"')
     print(f"\n  即刻版本 prompt 已保存到: {jike_prompt_path}")
     print("  请将此 prompt 发送给 AI 获取即刻短版本，保存为 jike-version.md")
     print(f"{'=' * 50}\n")
@@ -469,6 +522,11 @@ def main():
     p_jike.add_argument("--guide", "-g", action="store_true", help="显示即刻发布指南")
     p_jike.add_argument("--copy", "-c", action="store_true", help="复制主帖文案到剪贴板")
 
+    # summary: 摘要管理
+    p_summary = sub.add_parser("summary", help="查看或设置文章摘要")
+    p_summary.add_argument("--dir", "-d", required=True, help="文章目录路径")
+    p_summary.add_argument("--set", dest="set_summary", help="设置摘要文本")
+
     # post: 发布到草稿箱
     p_post = sub.add_parser("post", help="发布文章到微信公众号草稿箱")
     p_post.add_argument("--dir", "-d", required=True, help="文章目录路径")
@@ -490,6 +548,7 @@ def main():
         "finish": cmd_finish,
         "xhs": cmd_xhs,
         "jike": cmd_jike,
+        "summary": cmd_summary,
         "post": cmd_post,
     }
     cmds[args.command](args)

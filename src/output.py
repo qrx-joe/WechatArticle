@@ -106,6 +106,22 @@ class ArticleOutput:
 """
         return prompt
 
+    def generate_summary_prompt(self) -> str:
+        """生成文章摘要 prompt."""
+        prompt = """请根据以上公众号文章内容，生成一段文章摘要。
+
+## 摘要要求
+- 字数：80-120 字
+- 必须是独立的钩子，不能只是第一句话的复述
+- 要传达文章的核心洞察或冲突，让读者有点击欲望
+- 不要用"本文介绍了""这篇文章讲述了"这类套话
+- 可以用数据、对比、反常识来制造吸引力
+
+## 输出格式
+
+只输出摘要文本，不要加标题、引号或其他格式标记。"""
+        return prompt
+
     def print_summary(self, title: str, word_count: int, image_count: int):
         """打印文章生成摘要."""
         print(f"\n{'=' * 50}")

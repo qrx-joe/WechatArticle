@@ -1,0 +1,47 @@
+{
+  "jobs": 3,
+  "tasks": [
+    {
+      "id": "01-cover",
+      "promptFiles": ["prompts/01-comparison-two-ais.md"],
+      "image": "01-comparison-two-ais.png",
+      "ar": "16:9",
+      "quality": "2k"
+    },
+    {
+      "id": "02-codex",
+      "promptFiles": ["prompts/02-comparison-codex-pragmatic.md"],
+      "image": "02-comparison-codex-pragmatic.png",
+      "ar": "16:9",
+      "quality": "2k"
+    },
+    {
+      "id": "03-claude",
+      "promptFiles": ["prompts/03-comparison-claude-perfectionist.md"],
+      "image": "03-comparison-claude-perfectionist.png",
+      "ar": "16:9",
+      "quality": "2k"
+    },
+    {
+      "id": "04-overlap",
+      "promptFiles": ["prompts/04-comparison-90-percent-overlap.md"],
+      "image": "04-comparison-90-percent-overlap.png",
+      "ar": "16:9",
+      "quality": "2k"
+    },
+    {
+      "id": "05-mirror",
+      "promptFiles": ["prompts/05-framework-ai-as-mirror.md"],
+      "image": "05-framework-ai-as-mirror.png",
+      "ar": "16:9",
+      "quality": "2k"
+    },
+    {
+      "id": "06-lessons",
+      "promptFiles": ["prompts/06-infographic-four-lessons.md"],
+      "image": "06-infographic-four-lessons.png",
+      "ar": "16:9",
+      "quality": "2k"
+    }
+  ]
+}
