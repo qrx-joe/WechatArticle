@@ -20,7 +20,7 @@ class ArticleOutput:
         path.write_text(content, encoding="utf-8")
         return path
 
-    def generate_copy_guide(self, image_plan: list[dict]) -> str:
+    def generate_copy_guide(self, image_plan: list[dict]) -> Path:
         """生成手动复制到公众号的指引文档."""
         lines = [
             "# 发布指引",

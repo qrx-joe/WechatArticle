@@ -16,6 +16,7 @@ jobs:
         uses: astral-sh/setup-uv@v4
         with:
           version: "0.6.0"
+          enable-cache: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -31,5 +32,8 @@ jobs:
       - name: Run ruff format check
         run: uv run ruff format --check src tests
 
-      - name: Run tests
-        run: uv run pytest
+      - name: Run pyright
+        run: uv run pyright src
+
+      - name: Run tests with coverage
+        run: uv run pytest --cov=src --cov-report=term-missing --cov-fail-under=60

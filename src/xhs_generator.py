@@ -7,6 +7,96 @@ from pathlib import Path
 class XHSGenerator:
     """生成小红书版本的文案、配图 prompts 和发布指南."""
 
+    _VISUAL_PROMPTS: list[dict[str, str]] = [
+        {
+            "en": (
+                "A warm and inspiring illustration for a Xiaohongshu cover. "
+                "Split composition: dark blue-purple night sky transitioning to warm golden "
+                "sunrise light at the bottom. A young woman sitting at a desk with a laptop, "
+                "the screen emitting a soft glow that illuminates her face. The scene transforms "
+                "from dim/monochrome (left) to bright/colorful (right), symbolizing awakening "
+                "and breakthrough. Soft watercolor texture, dreamy atmosphere, pastel colors "
+                "with golden accents. Include subtle coding elements (floating brackets, pixels) "
+                "dissolving into light particles. 3:4 vertical format, clean minimalist design "
+                "with space for text overlay at top."
+            ),
+            "cn": (
+                "温暖治愈的小红书封面插画。画面从左上角的深蓝紫色夜空渐变到右下角的暖金色日出。"
+                "一位年轻女生坐在书桌前用笔记本电脑，屏幕发出柔和光芒照亮她的脸。"
+                "画面从暗淡（左）到明亮多彩（右），象征觉醒与突破。"
+                "水彩质感，梦幻氛围，pastel色系配金色点缀。漂浮的代码符号化作光点消散。3:4竖版，顶部留白。"
+            ),
+        },
+        {
+            "en": (
+                "A cozy flat illustration of an old laptop sitting on a wooden desk, covered "
+                "with a thin layer of dust. The screen shows a simple note-taking app interface. "
+                "Around the laptop are sticky notes with handwritten text crossed out in red. "
+                "A small calendar on the wall shows months passing by. Muted blue-gray color "
+                "palette with warm wood tones. Soft shadows, gentle melancholy mood. Minimalist "
+                "style, plenty of white space for text. 3:4 vertical format."
+            ),
+            "cn": (
+                "温馨的扁平插画。一台旧笔记本电脑放在木质书桌上，覆盖着薄薄灰尘。"
+                "屏幕显示简单备忘录界面。电脑周围贴着便利贴，手写文字被红笔划掉。"
+                "墙上小日历显示月份流逝。muted蓝灰色配温暖木色。柔和阴影，淡淡的惆怅感。"
+                "极简风格，大量留白。3:4竖版。"
+            ),
+        },
+        {
+            "en": (
+                "An energetic modern illustration showing a laptop screen exploding with colorful "
+                "checkmarks and completion notifications. A progress bar rapidly filling from 0% "
+                "to 100%. Small robot/AI assistant character (cute, friendly) helping organize "
+                "floating UI elements into neat rows. Electric blue and purple gradient background "
+                "with motion blur effects. Lightning bolt accents, speed lines. Dynamic diagonal "
+                "composition. Clean vector illustration style, bold colors, high contrast. "
+                "3:4 vertical format with space for text."
+            ),
+            "cn": (
+                "充满活力的现代插画。笔记本电脑屏幕迸发出彩色对勾和完成通知。"
+                "进度条从0%飞速填满到100%。可爱的AI小助手机器人帮忙整理漂浮的UI元素，排列整齐。"
+                "电光蓝和紫色渐变背景，动态模糊效果。闪电装饰，速度线。动态对角线构图。"
+                "clean矢量插画风格，大胆色彩，高对比度。3:4竖版，留白用于文字。"
+            ),
+        },
+        {
+            "en": (
+                "A split-screen illustration showing a transformation. Left side (cool blue-gray): "
+                "a person standing in front of a locked door, looking confused, with question marks "
+                "floating around. Right side (warm golden): the same person standing in an open "
+                "doorway with bright light streaming through, confidently holding a glowing "
+                "lightbulb. The two halves are connected by a subtle gradient transition. Clean "
+                "geometric style, warm and inspiring mood. Minimal details, symbolic and "
+                "metaphorical. Soft pastel colors on the warm side. 3:4 vertical format with "
+                "center space for a bold quote."
+            ),
+            "cn": (
+                "分屏式插画展示转变。左侧（冷蓝灰色）：一个人站在锁着的门前，表情困惑，周围漂浮问号。"
+                "右侧（暖金色）：同一个人站在敞开的门口，明亮光线涌入，自信地捧着发光灯泡。"
+                "两半由微妙渐变连接。clean几何风格，温暖励志氛围。极简细节，象征隐喻。"
+                "暖侧用柔和pastel色。3:4竖版，中间留白用于金句。"
+            ),
+        },
+        {
+            "en": (
+                "A serene landscape illustration at golden hour. A wide open road stretching into "
+                "a beautiful sunset with rays of light breaking through clouds. A small silhouette "
+                "of a person walking confidently on the road. The sky is painted in warm orange, "
+                "pink, and soft purple gradients. Floating light particles and soft bokeh effects. "
+                "In the foreground, small wildflowers blooming. Dreamy, hopeful, inspiring "
+                "atmosphere. Watercolor texture mixed with clean vector elements. 3:4 vertical "
+                "format, top area reserved for text."
+            ),
+            "cn": (
+                "宁静的黄金时刻风景插画。一条宽阔开阔的道路延伸至美丽日落，光线穿透云层。"
+                "一个小小的人影自信地走在路上。天空绘有温暖的橙色、粉色和柔和紫色渐变。"
+                "漂浮的光粒子和柔和散景效果。前景有小野花在绽放。梦幻、充满希望、励志的氛围。"
+                "水彩质感混合clean矢量元素。3:4竖版，顶部留白用于文字。"
+            ),
+        },
+    ]
+
     def __init__(self, article_dir: Path):
         self.article_dir = article_dir
         self.xhs_dir = article_dir / "images" / "xhs"
@@ -414,34 +504,6 @@ class XHSGenerator:
 
     def _generate_image_prompts(self, cards: list[dict], analysis: dict) -> str:
         """生成配图 prompts 文档."""
-        visual_prompts = [
-            {
-                "theme": "封面",
-                "en": "A warm and inspiring illustration for a Xiaohongshu cover. Split composition: dark blue-purple night sky transitioning to warm golden sunrise light at the bottom. A young woman sitting at a desk with a laptop, the screen emitting a soft glow that illuminates her face. The scene transforms from dim/monochrome (left) to bright/colorful (right), symbolizing awakening and breakthrough. Soft watercolor texture, dreamy atmosphere, pastel colors with golden accents. Include subtle coding elements (floating brackets, pixels) dissolving into light particles. 3:4 vertical format, clean minimalist design with space for text overlay at top.",
-                "cn": "温暖治愈的小红书封面插画。画面从左上角的深蓝紫色夜空渐变到右下角的暖金色日出。一位年轻女生坐在书桌前用笔记本电脑，屏幕发出柔和光芒照亮她的脸。画面从暗淡（左）到明亮多彩（右），象征觉醒与突破。水彩质感，梦幻氛围，pastel色系配金色点缀。漂浮的代码符号化作光点消散。3:4竖版，顶部留白。",
-            },
-            {
-                "theme": "故事起点",
-                "en": "A cozy flat illustration of an old laptop sitting on a wooden desk, covered with a thin layer of dust. The screen shows a simple note-taking app interface. Around the laptop are sticky notes with handwritten text crossed out in red. A small calendar on the wall shows months passing by. Muted blue-gray color palette with warm wood tones. Soft shadows, gentle melancholy mood. Minimalist style, plenty of white space for text. 3:4 vertical format.",
-                "cn": "温馨的扁平插画。一台旧笔记本电脑放在木质书桌上，覆盖着薄薄灰尘。屏幕显示简单备忘录界面。电脑周围贴着便利贴，手写文字被红笔划掉。墙上小日历显示月份流逝。muted蓝灰色配温暖木色。柔和阴影，淡淡的惆怅感。极简风格，大量留白。3:4竖版。",
-            },
-            {
-                "theme": "转折点",
-                "en": "An energetic modern illustration showing a laptop screen exploding with colorful checkmarks and completion notifications. A progress bar rapidly filling from 0% to 100%. Small robot/AI assistant character (cute, friendly) helping organize floating UI elements into neat rows. Electric blue and purple gradient background with motion blur effects. Lightning bolt accents, speed lines. Dynamic diagonal composition. Clean vector illustration style, bold colors, high contrast. 3:4 vertical format with space for text.",
-                "cn": "充满活力的现代插画。笔记本电脑屏幕迸发出彩色对勾和完成通知。进度条从0%飞速填满到100%。可爱的AI小助手机器人帮忙整理漂浮的UI元素，排列整齐。电光蓝和紫色渐变背景，动态模糊效果。闪电装饰，速度线。动态对角线构图。clean矢量插画风格，大胆色彩，高对比度。3:4竖版，留白用于文字。",
-            },
-            {
-                "theme": "核心领悟",
-                "en": "A split-screen illustration showing a transformation. Left side (cool blue-gray): a person standing in front of a locked door, looking confused, with question marks floating around. Right side (warm golden): the same person standing in an open doorway with bright light streaming through, confidently holding a glowing lightbulb. The two halves are connected by a subtle gradient transition. Clean geometric style, warm and inspiring mood. Minimal details, symbolic and metaphorical. Soft pastel colors on the warm side. 3:4 vertical format with center space for a bold quote.",
-                "cn": "分屏式插画展示转变。左侧（冷蓝灰色）：一个人站在锁着的门前，表情困惑，周围漂浮问号。右侧（暖金色）：同一个人站在敞开的门口，明亮光线涌入，自信地捧着发光灯泡。两半由微妙渐变连接。clean几何风格，温暖励志氛围。极简细节，象征隐喻。暖侧用柔和pastel色。3:4竖版，中间留白用于金句。",
-            },
-            {
-                "theme": "结尾",
-                "en": "A serene landscape illustration at golden hour. A wide open road stretching into a beautiful sunset with rays of light breaking through clouds. A small silhouette of a person walking confidently on the road. The sky is painted in warm orange, pink, and soft purple gradients. Floating light particles and soft bokeh effects. In the foreground, small wildflowers blooming. Dreamy, hopeful, inspiring atmosphere. Watercolor texture mixed with clean vector elements. 3:4 vertical format, top area reserved for text.",
-                "cn": "宁静的黄金时刻风景插画。一条宽阔开阔的道路延伸至美丽日落，光线穿透云层。一个小小的人影自信地走在路上。天空绘有温暖的橙色、粉色和柔和紫色渐变。漂浮的光粒子和柔和散景效果。前景有小野花在绽放。梦幻、充满希望、励志的氛围。水彩质感混合clean矢量元素。3:4竖版，顶部留白用于文字。",
-            },
-        ]
-
         lines = [
             "# 小红书配图 Prompts",
             "",
@@ -453,7 +515,7 @@ class XHSGenerator:
             "",
         ]
 
-        for i, (card, vp) in enumerate(zip(cards, visual_prompts, strict=False)):
+        for i, (card, vp) in enumerate(zip(cards, self._VISUAL_PROMPTS, strict=False)):
             lines.extend(
                 [
                     f"## 卡片 {i + 1}：{card['title']}",
@@ -494,30 +556,7 @@ class XHSGenerator:
 
     def _write_individual_prompts(self, cards: list[dict]) -> None:
         """将每张图的 prompt 写入单独文件."""
-        visual_prompts = [
-            {
-                "en": "A warm and inspiring illustration for a Xiaohongshu cover. Split composition: dark blue-purple night sky transitioning to warm golden sunrise light at the bottom. A young woman sitting at a desk with a laptop, the screen emitting a soft glow that illuminates her face. The scene transforms from dim/monochrome (left) to bright/colorful (right), symbolizing awakening and breakthrough. Soft watercolor texture, dreamy atmosphere, pastel colors with golden accents. Include subtle coding elements (floating brackets, pixels) dissolving into light particles. 3:4 vertical format, clean minimalist design with space for text overlay at top.",
-                "cn": "温暖治愈的小红书封面插画。画面从左上角的深蓝紫色夜空渐变到右下角的暖金色日出。一位年轻女生坐在书桌前用笔记本电脑，屏幕发出柔和光芒照亮她的脸。画面从暗淡（左）到明亮多彩（右），象征觉醒与突破。水彩质感，梦幻氛围，pastel色系配金色点缀。漂浮的代码符号化作光点消散。3:4竖版，顶部留白。",
-            },
-            {
-                "en": "A cozy flat illustration of an old laptop sitting on a wooden desk, covered with a thin layer of dust. The screen shows a simple note-taking app interface. Around the laptop are sticky notes with handwritten text crossed out in red. A small calendar on the wall shows months passing by. Muted blue-gray color palette with warm wood tones. Soft shadows, gentle melancholy mood. Minimalist style, plenty of white space for text. 3:4 vertical format.",
-                "cn": "温馨的扁平插画。一台旧笔记本电脑放在木质书桌上，覆盖着薄薄灰尘。屏幕显示简单备忘录界面。电脑周围贴着便利贴，手写文字被红笔划掉。墙上小日历显示月份流逝。muted蓝灰色配温暖木色。柔和阴影，淡淡的惆怅感。极简风格，大量留白。3:4竖版。",
-            },
-            {
-                "en": "An energetic modern illustration showing a laptop screen exploding with colorful checkmarks and completion notifications. A progress bar rapidly filling from 0% to 100%. Small robot/AI assistant character (cute, friendly) helping organize floating UI elements into neat rows. Electric blue and purple gradient background with motion blur effects. Lightning bolt accents, speed lines. Dynamic diagonal composition. Clean vector illustration style, bold colors, high contrast. 3:4 vertical format with space for text.",
-                "cn": "充满活力的现代插画。笔记本电脑屏幕迸发出彩色对勾和完成通知。进度条从0%飞速填满到100%。可爱的AI小助手机器人帮忙整理漂浮的UI元素，排列整齐。电光蓝和紫色渐变背景，动态模糊效果。闪电装饰，速度线。动态对角线构图。clean矢量插画风格，大胆色彩，高对比度。3:4竖版，留白用于文字。",
-            },
-            {
-                "en": "A split-screen illustration showing a transformation. Left side (cool blue-gray): a person standing in front of a locked door, looking confused, with question marks floating around. Right side (warm golden): the same person standing in an open doorway with bright light streaming through, confidently holding a glowing lightbulb. The two halves are connected by a subtle gradient transition. Clean geometric style, warm and inspiring mood. Minimal details, symbolic and metaphorical. Soft pastel colors on the warm side. 3:4 vertical format with center space for a bold quote.",
-                "cn": "分屏式插画展示转变。左侧（冷蓝灰色）：一个人站在锁着的门前，表情困惑，周围漂浮问号。右侧（暖金色）：同一个人站在敞开的门口，明亮光线涌入，自信地捧着发光灯泡。两半由微妙渐变连接。clean几何风格，温暖励志氛围。极简细节，象征隐喻。暖侧用柔和pastel色。3:4竖版，中间留白用于金句。",
-            },
-            {
-                "en": "A serene landscape illustration at golden hour. A wide open road stretching into a beautiful sunset with rays of light breaking through clouds. A small silhouette of a person walking confidently on the road. The sky is painted in warm orange, pink, and soft purple gradients. Floating light particles and soft bokeh effects. In the foreground, small wildflowers blooming. Dreamy, hopeful, inspiring atmosphere. Watercolor texture mixed with clean vector elements. 3:4 vertical format, top area reserved for text.",
-                "cn": "宁静的黄金时刻风景插画。一条宽阔开阔的道路延伸至美丽日落，光线穿透云层。一个小小的人影自信地走在路上。天空绘有温暖的橙色、粉色和柔和紫色渐变。漂浮的光粒子和柔和散景效果。前景有小野花在绽放。梦幻、充满希望、励志的氛围。水彩质感混合clean矢量元素。3:4竖版，顶部留白用于文字。",
-            },
-        ]
-
-        for i, (card, vp) in enumerate(zip(cards, visual_prompts, strict=False)):
+        for i, (card, vp) in enumerate(zip(cards, self._VISUAL_PROMPTS, strict=False)):
             # 保存英文版本
             en_path = self.prompts_dir / f"{i + 1:02d}-{card['type']}.md"
             en_content = f"{vp['en']}\n"
@@ -555,25 +594,7 @@ class XHSGenerator:
             "",
         ]
 
-        visual_prompts = [
-            {
-                "cn": "温暖治愈的小红书封面插画。画面从左上角的深蓝紫色夜空渐变到右下角的暖金色日出。一位年轻女生坐在书桌前用笔记本电脑，屏幕发出柔和光芒照亮她的脸。画面从暗淡（左）到明亮多彩（右），象征觉醒与突破。水彩质感，梦幻氛围，pastel色系配金色点缀。漂浮的代码符号化作光点消散。3:4竖版，顶部留白。",
-            },
-            {
-                "cn": "温馨的扁平插画。一台旧笔记本电脑放在木质书桌上，覆盖着薄薄灰尘。屏幕显示简单备忘录界面。电脑周围贴着便利贴，手写文字被红笔划掉。墙上小日历显示月份流逝。muted蓝灰色配温暖木色。柔和阴影，淡淡的惆怅感。极简风格，大量留白。3:4竖版。",
-            },
-            {
-                "cn": "充满活力的现代插画。笔记本电脑屏幕迸发出彩色对勾和完成通知。进度条从0%飞速填满到100%。可爱的AI小助手机器人帮忙整理漂浮的UI元素，排列整齐。电光蓝和紫色渐变背景，动态模糊效果。闪电装饰，速度线。动态对角线构图。clean矢量插画风格，大胆色彩，高对比度。3:4竖版，留白用于文字。",
-            },
-            {
-                "cn": "分屏式插画展示转变。左侧（冷蓝灰色）：一个人站在锁着的门前，表情困惑，周围漂浮问号。右侧（暖金色）：同一个人站在敞开的门口，明亮光线涌入，自信地捧着发光灯泡。两半由微妙渐变连接。clean几何风格，温暖励志氛围。极简细节，象征隐喻。暖侧用柔和pastel色。3:4竖版，中间留白用于金句。",
-            },
-            {
-                "cn": "宁静的黄金时刻风景插画。一条宽阔开阔的道路延伸至美丽日落，光线穿透云层。一个小小的人影自信地走在路上。天空绘有温暖的橙色、粉色和柔和紫色渐变。漂浮的光粒子和柔和散景效果。前景有小野花在绽放。梦幻、充满希望、励志的氛围。水彩质感混合clean矢量元素。3:4竖版，顶部留白用于文字。",
-            },
-        ]
-
-        for i, (card, vp) in enumerate(zip(cards, visual_prompts, strict=False)):
+        for i, (card, vp) in enumerate(zip(cards, self._VISUAL_PROMPTS, strict=False)):
             lines.extend(
                 [
                     f"### 卡片 {i + 1}：{card['title']}",

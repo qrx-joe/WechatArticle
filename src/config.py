@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -7,14 +8,14 @@ import yaml
 class Config:
     def __init__(self, path: str = "config.yaml"):
         self.path = Path(path)
-        self._data = {}
+        self._data: dict[str, Any] = {}
         if self.path.exists():
             with open(self.path, encoding="utf-8") as f:
                 self._data = yaml.safe_load(f) or {}
 
-    def get(self, key: str, default=None):
+    def get(self, key: str, default: Any = None) -> Any:
         keys = key.split(".")
-        value = self._data
+        value: Any = self._data
         for k in keys:
             if isinstance(value, dict) and k in value:
                 value = value[k]
@@ -24,11 +25,11 @@ class Config:
 
     @property
     def ai_provider(self) -> str:
-        return self.get("ai.provider", "claude")
+        return str(self.get("ai.provider", "claude"))
 
     @property
     def ai_model(self) -> str:
-        return self.get("ai.model", "claude-sonnet-4-6")
+        return str(self.get("ai.model", "claude-sonnet-4-6"))
 
     @property
     def api_key(self) -> str | None:
@@ -42,40 +43,40 @@ class Config:
 
     @property
     def style_tone(self) -> str:
-        return self.get("style.tone", "storytelling")
+        return str(self.get("style.tone", "storytelling"))
 
     @property
     def word_count_min(self) -> int:
-        return self.get("style.word_count.min", 1500)
+        return int(self.get("style.word_count.min", 1500))
 
     @property
     def word_count_max(self) -> int:
-        return self.get("style.word_count.max", 3000)
+        return int(self.get("style.word_count.max", 3000))
 
     @property
     def paragraph_style(self) -> str:
-        return self.get("style.paragraph_style", "short")
+        return str(self.get("style.paragraph_style", "short"))
 
     @property
     def illustration_enabled(self) -> bool:
-        return self.get("illustration.enabled", True)
+        return bool(self.get("illustration.enabled", True))
 
     @property
     def illustration_style(self) -> str:
-        return self.get("illustration.style", "")
+        return str(self.get("illustration.style", ""))
 
     @property
     def max_images(self) -> int:
-        return self.get("illustration.max_images", 5)
+        return int(self.get("illustration.max_images", 5))
 
     @property
     def xhs_card_count(self) -> int:
-        return self.get("xhs.card_count", 5)
+        return int(self.get("xhs.card_count", 5))
 
     @property
     def xhs_illustration_style(self) -> str:
-        return self.get("xhs.illustration_style", "扁平插画风格，温暖治愈，适合小红书笔记")
+        return str(self.get("xhs.illustration_style", "扁平插画风格，温暖治愈，适合小红书笔记"))
 
     @property
     def xhs_default_tags(self) -> list[str]:
-        return self.get("xhs.default_tags", ["AI编程", "ClaudeCode", "自我成长", "效率工具"])
+        return list(self.get("xhs.default_tags", ["AI编程", "ClaudeCode", "自我成长", "效率工具"]))
