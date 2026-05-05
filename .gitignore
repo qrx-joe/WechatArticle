@@ -22,3 +22,9 @@ content/**/imgs/*.png
 content/**/images/*.jpg
 content/**/images/*.jpeg
 content/**/images/*.webp
+
+# Generated HTML articles
+content/**/*.html
+
+# One-off scripts inside content dirs
+content/**/embed_images.py
